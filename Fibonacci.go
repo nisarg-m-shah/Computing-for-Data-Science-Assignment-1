@@ -2,46 +2,53 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 )
 
-// Recursive Fibonacci
-func fibonacci(n int64) int64 {
-	if n == 1 {
-		return 0
-	} else if n == 2 {
-		return 1
+func fib(n int) int {
+	if n == 1 || n == 2 {
+		return n - 1
 	}
-	return fibonacci(n-1) + fibonacci(n-2)
+	return fib(n-1) + fib(n-2)
+}
+
+func getCPUTimeSeconds() float64 {
+	data, err := os.ReadFile("/proc/self/stat")
+	if err != nil {
+		return 0
+	}
+	fields := strings.Fields(string(data))
+	// utime = field 14, stime = field 15 (0-based index 13 and 14)
+	utimeTicks, _ := strconv.ParseFloat(fields[13], 64)
+	stimeTicks, _ := strconv.ParseFloat(fields[14], 64)
+
+	// Most Linux systems have 100 ticks/sec, but let's detect if possible
+	ticksPerSec := float64(100) // adjust if needed for your OS
+
+	return (utimeTicks + stimeTicks) / ticksPerSec
 }
 
 func main() {
-	var n int64 = 40 // Adjust as needed
+	var mStart, mEnd runtime.MemStats
+	runtime.ReadMemStats(&mStart)
 
-	// Record memory before
-	var memBefore runtime.MemStats
-	runtime.ReadMemStats(&memBefore)
+	startWall := time.Now()
+	startCPU := getCPUTimeSeconds()
 
-	// Record time before
-	start := time.Now()
+	result := fib(40)
 
-	// Run Fibonacci
-	result := fibonacci(n)
+	endCPU := getCPUTimeSeconds()
+	endWall := time.Since(startWall)
 
-	// Record time after
-	elapsed := time.Since(start)
+	runtime.ReadMemStats(&mEnd)
+	usedMem := mEnd.Alloc - mStart.Alloc
 
-	// Record memory after
-	var memAfter runtime.MemStats
-	runtime.ReadMemStats(&memAfter)
-
-	// Calculate memory used
-	memUsed := float64(memAfter.TotalAlloc-memBefore.TotalAlloc) / 1024 // in KB
-
-	// Print results
-	fmt.Printf("Fibonacci(%d) = %d\n", n, result)
-	fmt.Printf("Execution Time (Wall Clock): %v\n", elapsed)
-	fmt.Printf("Approx CPU Time (same as wall): %v\n", elapsed)
-	fmt.Printf("Memory Used: %.2f KB\n", memUsed)
+	fmt.Printf("Fibonacci(40) = %d\n", result)
+	fmt.Printf("Execution time: %.6f seconds\n", endWall.Seconds())
+	fmt.Printf("CPU time: %.6f seconds\n", endCPU-startCPU)
+	fmt.Printf("Memory used: %d KB\n", usedMem/1024)
 }
