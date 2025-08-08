@@ -2,44 +2,28 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 
 public class Fibonacci {
-
-    public static void main(String[] args) {
-        int n = 40;
-
-        // Get thread management for CPU time measurement
-        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-        threadMXBean.setThreadContentionMonitoringEnabled(true);
-
-        // Capture the initial CPU time (for the current thread)
-        long startCpuTime = threadMXBean.getCurrentThreadCpuTime();
-
-        // Capture time measurements
-        long startTime = System.nanoTime();
-
-        int val = fibonacci(n);
-
-        // Capture time after computation
-        long endTime = System.nanoTime();
-
-        // Capture the final CPU time
-        long endCpuTime = threadMXBean.getCurrentThreadCpuTime();
-
-        double timeMillis = (endTime - startTime) / 1_000_000.0;
-        double cpuMillis = (endCpuTime - startCpuTime) / 1_000_000.0;
-
-        // Output results
-        System.out.println("Fibonacci(" + n + ") = " + val);
-        System.out.printf("Execution Time (Wall Clock): %.3f ms\n", timeMillis);
-        System.out.printf("CPU Time: %.3f ms\n", cpuMillis);
+    public static long fib(long n) {
+        if (n == 1 || n == 2) return n;
+        return fib(n - 1) + fib(n - 2);
     }
 
-    public static int fibonacci(int n) {
-        if (n == 1) {
-            return 0;
-        } else if (n == 2) {
-            return 1;
-        } else {
-            return fibonacci(n - 1) + fibonacci(n - 2);
-        }
+    public static void main(String[] args) {
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+
+        long startWall = System.nanoTime();
+        long startCpu = bean.getCurrentThreadCpuTime();
+
+        long result = fib(40);
+
+        long endCpu = bean.getCurrentThreadCpuTime();
+        long endWall = System.nanoTime();
+
+        // Memory usage in bytes
+        long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        System.out.println("Fibonacci(40) = " + result);
+        System.out.printf("Execution time: %.6f seconds%n", (endWall - startWall) / 1e9);
+        System.out.printf("CPU time: %.6f seconds%n", (endCpu - startCpu) / 1e9);
+        System.out.println("Memory used: " + usedMem / 1024 + " KB");
     }
 }
