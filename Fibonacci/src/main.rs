@@ -46,5 +46,5 @@ fn main() {
     println!("Fibonacci(40) = {}", result);
     println!("Execution time (wall): {:.6} seconds", wall_elapsed.as_secs_f64());
     println!("CPU time: {:.6} seconds", end_cpu - start_cpu);
-    println!("Peak memory (RSS): {} KB", peak_mem);
+    println!("Memory used: {} KB", peak_mem);
 }

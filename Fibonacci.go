@@ -47,8 +47,9 @@ func main() {
 	runtime.ReadMemStats(&mEnd)
 	usedMem := mEnd.Alloc - mStart.Alloc
 
+	fmt.Printf("Language: Golang\n")
 	fmt.Printf("Fibonacci(40) = %d\n", result)
 	fmt.Printf("Execution time: %.6f seconds\n", endWall.Seconds())
 	fmt.Printf("CPU time: %.6f seconds\n", endCPU-startCPU)
-	fmt.Printf("Memory used: %d Bytes\n", usedMem)
+	fmt.Printf("Memory used: %.2f KB\n", float64(usedMem)/1024)
 }
